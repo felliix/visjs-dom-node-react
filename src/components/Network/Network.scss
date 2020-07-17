@@ -1,0 +1,16 @@
+.Network {
+  position: relative;
+  overflow: hidden;
+
+  .vis-network:focus {
+    outline: none;
+  }
+
+  &__overlay-dom {
+    position: absolute;
+  }
+
+  &__popup {
+    position: absolute;
+  }
+}
