@@ -24,7 +24,7 @@ const getDomNodeStyle = (node, dom) => ({
 })
 
 function Network(props) {
-  const { edges, options, popupOptions, className, style } = props
+  const { edges, options, popupOptions, style } = props
   const [nodes, setNodes] = useState(props.nodes)
   const [popup, setPopup] = useState(null)
 
@@ -41,7 +41,7 @@ function Network(props) {
     if (getNodeDomCount() === 0) {
       setNodes(props.nodes)
     }
-  }, [props.nodes])
+  }, [props.nodes, getNodeDomCount])
 
   const getDomRef = key => el => {
     const dom = domRef.current

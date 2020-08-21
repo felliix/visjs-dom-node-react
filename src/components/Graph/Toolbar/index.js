@@ -4,7 +4,7 @@ import { faStop, faSave, faWrench, faSitemap, faProjectDiagram } from '@fortawes
 import Legend from '../Legend'
 import './style.scss'
 
-export default ({ groups }) => {
+export default ({ groups, onToggleGroup }) => {
   const [showLegend, setShowLegend] = useState(false)
   const legendRef = useRef();
 
@@ -21,13 +21,7 @@ export default ({ groups }) => {
     }
   }
 
-  const handleToggleGroup = group => {
-
-  }
-
   const handleLegendHover = () => setShowLegend(true)
-
-  const hideLegend = () => setShowLegend(false)
 
   return (
     <div className='Toolbar'>
@@ -47,7 +41,7 @@ export default ({ groups }) => {
       {showLegend && (
         <Legend
           className='Toolbar__Legend'
-          onToggleGroup={handleToggleGroup}
+          onToggleGroup={onToggleGroup}
           groups={groups}
           ref={legendRef}
         />

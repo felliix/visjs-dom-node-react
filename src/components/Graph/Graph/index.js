@@ -17,16 +17,20 @@ export default props => {
       fp.uniq,
       fp.map('group')
     )(nodes),
-    [nodes, visOptions.group]
+    [nodes, visOptions.groups]
   )
 
   const style = {
     height: options.height
   }
 
+  const handleToggleGroup = (hiddenGroups, toggled) => {
+
+  }
+
   return (
     <div className={cn('Graph', className)}>
-      <Toolbar groups={groups} />
+      <Toolbar groups={groups} onToggleGroup={handleToggleGroup} />
       <Network
         nodes={nodes}
         edges={edges}

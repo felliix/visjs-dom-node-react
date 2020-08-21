@@ -18,7 +18,12 @@ function Graph({ className, nodes, edges, events, options, getNetwork }) {
   }, [edges])
 
   useEffect(() => {
-    applyEvents()
+    if (network.current && events) {
+      Object.keys(events).forEach(name => {
+        network.current.off(name)
+        network.current.on(name, events[name])
+      })
+    }
   }, [events])
 
   useEffect(() => {
@@ -26,15 +31,6 @@ function Graph({ className, nodes, edges, events, options, getNetwork }) {
       network.current.setOptions(options)
     }
   }, [options])
-
-  const applyEvents = () => {
-    if (network.current && events) {
-      Object.keys(events).forEach(name => {
-        network.current.off(name)
-        network.current.on(name, events[name])
-      })
-    }
-  }
 
   const setContainerRef = el => {
     if (!network.current) {
