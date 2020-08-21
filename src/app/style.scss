@@ -2,9 +2,13 @@ body {
   font-family: 'Segoe UI', 'Roboto', arial, sans-serif;
 }
 
-.OverlayNetwork {
-  height: 500px;
-  border: 1px solid lightgray;
+.App {
+  padding: .5em;
+}
+
+.SearchCodebase {
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .overlay {

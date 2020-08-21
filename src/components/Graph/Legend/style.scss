@@ -1,0 +1,80 @@
+.Legend {
+  background-color: white;
+  border: 1px solid lightgray;
+  padding: 0.2em;
+  border-radius: 0.3em;
+
+  &__Legend-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: .5em;
+    cursor: pointer;
+    transition: .2s ease opacity;
+
+    &:hover {
+      opacity: .6;
+    }
+  }
+
+  &__Legend-color {
+    width: 1em;
+    height: 1em;
+    display: inline-block;
+    border-radius: 50%;
+    margin-right: .5em;
+    box-shadow: 1px 2px 3px 2px #0003;
+  }
+
+  .accordion__button {
+    border-radius: 0.2em;
+    padding: 0.4em 0.7em;
+    background-color: #eee;
+    cursor: pointer;
+
+    &:before {
+      display: inline-block;
+      content: '';
+      color: gray;
+      height: 0.3em;
+      width: 0.3em;
+      margin-right: 0.5em;
+      border-bottom: 1px solid currentColor;
+      border-right: 1px solid currentColor;
+      transform: rotate(-45deg);
+      transition: transform ease .1s;
+      position: relative;
+      bottom: 3px;
+    }
+
+    &:focus {
+      outline: none;
+    }
+
+    &:hover {
+      background-color: #ddd;
+    }
+
+    &[aria-expanded=true]:before {
+      transform: rotate(45deg);
+    }
+  }
+
+  .accordion__panel {
+    padding: 0.4em 0.7em;
+    animation: fadein 0.35s ease-in;
+  }
+
+  .accordion__item:not(:first-child) {
+    margin-top: 0.2em;
+  }
+
+  @keyframes fadein {
+    0% {
+      opacity: 0;
+    }
+
+    100% {
+      opacity: 1;
+    }
+  }
+}

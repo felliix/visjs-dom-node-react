@@ -1,6 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
-import cn from 'classnames';
-import Graph from 'react-graph-vis';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import Graph from './react-network';
 import Hammer from 'hammerjs';
 import './Network.scss';
 
@@ -25,18 +24,23 @@ const getDomNodeStyle = (node, dom) => ({
 })
 
 function Network(props) {
-  const { className, edges, options, popupOptions, ...otherProps } = props
+  const { edges, options, popupOptions, className, style } = props
   const [nodes, setNodes] = useState(props.nodes)
-  const [domRefLoaded, setDomRefLoaded] = useState(false)
   const [popup, setPopup] = useState(null)
-  const graph = { nodes, edges }
 
   const networkRef = useRef()
   const popupRef = useRef()
   const domRef = useRef({})
 
+  const getNodeDomCount = useCallback(() => {
+    return props.nodes.filter(node => !!node.dom).length
+  }, [props.nodes])
+
   useEffect(() => {
     domRef.current = {}
+    if (getNodeDomCount() === 0) {
+      setNodes(props.nodes)
+    }
   }, [props.nodes])
 
   const getDomRef = key => el => {
@@ -56,10 +60,8 @@ function Network(props) {
         hammer.on('tap', network.body.eventListeners.onTap)
       }
 
-      if (Object.keys(dom).length === nodes.length) {
-        const nodes = props.nodes.map(node => getDomNodeStyle(node, el))
-        setNodes(nodes)
-        setDomRefLoaded(true)
+      if (Object.keys(dom).length === getNodeDomCount()) {
+        setNodes(props.nodes.map(node => getDomNodeStyle(node, dom[node.id])))
       }
     }
   }
@@ -71,14 +73,16 @@ function Network(props) {
     const scale = network.getScale()
     
     nodes.forEach(({ id }) => {
-      const { x, y } = network.canvasToDOM({
-        x: pos[id].x,
-        y: pos[id].y
-      })
-
-      dom[id].style.left = `${x}px`
-      dom[id].style.top = `${y}px`
-      dom[id].style.transform = `translate(-50%, -50%) scale(${scale})`
+      if (dom[id]) {
+        const { x, y } = network.canvasToDOM({
+          x: pos[id].x,
+          y: pos[id].y
+        })
+  
+        dom[id].style.left = `${x}px`
+        dom[id].style.top = `${y}px`
+        dom[id].style.transform = `translate(-50%, -50%) scale(${scale})`
+      }
     })
     props.events && props.events.afterDrawing && props.events.afterDrawing(e)
   }
@@ -87,12 +91,11 @@ function Network(props) {
     const popupDom = popupRef.current
 
     if (e.edges.length) {
-      if (popupOptions && popupOptions.edgeClick && otherProps[popupOptions.edgeClick]) {
-        const popupEdgeClick = otherProps[popupOptions.edgeClick](e)
+      if (popupOptions && popupOptions.getPopupOnEdgeClick) {
         popupDom.style.left = e.event.center.x + 'px'
         popupDom.style.top = e.event.center.y + 'px'
         popupDom.style.opacity = 1
-        setPopup(popupEdgeClick)
+        setPopup(popupOptions.getPopupOnEdgeClick(e))
       }
     } else {
       popupDom.style.opacity = 0
@@ -134,25 +137,26 @@ function Network(props) {
   }
 
   return (
-    <div className={cn('Network', className)}>
-      {domRefLoaded && (
-        <Graph
-          graph={graph}
-          options={options}
-          events={events}
-          getNetwork={getNetwork}
-        />
-      )}
-      {nodes.map(({ id, dom }) => (
-        <div
-          className='Network__overlay-dom'
-          ref={getDomRef(id)}
-          onMouseMove={networkRef.current && networkRef.current.body.eventListeners.onMouseMove}
-          key={id}
-        >
+    <div className='Network' style={style}>
+      <Graph
+        nodes={nodes}
+        edges={edges}
+        options={options}
+        events={events}
+        getNetwork={getNetwork}
+      />
+      <div className='Network__overlays'>
+        {props.nodes.map(({ id, dom }) => !!dom && (
+          <div
+            className='Network__overlay-dom'
+            ref={getDomRef(id)}
+            onMouseMove={networkRef.current && networkRef.current.body.eventListeners.onMouseMove}
+            key={id}
+          >
             {dom}
-        </div>
-      ))}
+          </div>
+        ))}
+      </div>
       <div className='Network__popup' ref={popupRef}>
         {popup}
       </div>

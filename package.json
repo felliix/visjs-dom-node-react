@@ -3,17 +3,22 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@fortawesome/fontawesome-svg-core": "^1.2.30",
+    "@fortawesome/free-solid-svg-icons": "^5.14.0",
+    "@fortawesome/react-fontawesome": "^0.1.11",
     "@testing-library/jest-dom": "^4.2.4",
     "@testing-library/react": "^9.3.2",
     "@testing-library/user-event": "^7.1.2",
     "classnames": "^2.2.6",
     "hammerjs": "^2.0.8",
     "lodash": "^4.17.19",
+    "neo4j-driver": "^4.1.1",
     "node-sass": "^4.14.1",
     "react": "^16.13.1",
+    "react-accessible-accordion": "^3.3.3",
     "react-dom": "^16.13.1",
-    "react-graph-vis": "^1.0.5",
-    "react-scripts": "3.4.1"
+    "react-scripts": "3.4.1",
+    "vis-network": "^8.2.0"
   },
   "scripts": {
     "start": "react-scripts start",
