@@ -33,9 +33,18 @@ export default React.forwardRef(({ className, groups, hiddenGroups, onToggleGrou
               <div
                 key={name}
                 onClick={handleGroupClick(name)}
-                className={'Legend__Legend-item' + (hidden.includes(name) ? '--hidden' : '')}
+                className={
+                  'Legend__Legend-item' +
+                  (hidden.includes(name) ? '--hidden' : '')
+                }
               >
-                <span className='Legend__Legend-color' style={{ backgroundColor: color, borderColor: color }} />
+                <span
+                  className='Legend__Legend-color'
+                  style={{
+                    backgroundColor: color,
+                    borderColor: color
+                  }}
+                />
                 <span>{name}</span>
               </div>
             ))}

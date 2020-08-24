@@ -15,7 +15,11 @@
     position: absolute;
   }
 
-  &__popup {
+  &__popup-edge-click {
+    position: absolute;
+  }
+
+  &__popup-node-hover {
     position: absolute;
   }
 }

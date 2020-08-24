@@ -4,7 +4,7 @@ import { faStop, faSave, faWrench, faSitemap, faProjectDiagram } from '@fortawes
 import Legend from '../Legend'
 import './style.scss'
 
-export default ({ groups, onToggleGroup }) => {
+export default ({ groups, onToggleGroup, onFitWindow, onSearch }) => {
   const [showLegend, setShowLegend] = useState(false)
   const legendRef = useRef();
 
@@ -21,13 +21,28 @@ export default ({ groups, onToggleGroup }) => {
     }
   }
 
+  const handleSearchChange = e => {
+    const q = e.target.value
+    if (e.which === 13 || q.length === 0) {
+      onSearch && onSearch(q)
+    }
+  }
+
   const handleLegendHover = () => setShowLegend(true)
 
   return (
     <div className='Toolbar'>
-      <input className='Toolbar__SearchNetwork' placeholder='Search this network' />
+      <input
+        className='Toolbar__SearchNetwork'
+        placeholder='Search this network'
+        onKeyUp={handleSearchChange}
+      />
       <div>
-        <span title='Fit to window' className='Toolbar__Tool'>
+        <span
+          title='Fit to window'
+          onClick={onFitWindow}
+          className='Toolbar__Tool'
+        >
           <FontAwesomeIcon icon={faStop} />
         </span>
         <span title='Save network' className='Toolbar__Tool'>

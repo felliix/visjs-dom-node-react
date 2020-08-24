@@ -51,8 +51,31 @@ body {
   }
 }
 
-.popup {
+.edge-popup {
   background-color: black;
   color: white;
   padding: 0.5em;
+}
+
+.hover-popup {
+  svg {
+    display: block;
+  }
+  
+	background-color: transparent;
+	animation-name: slide-animation;
+	animation-duration: .3s;
+	margin-left: 40px;
+	font-size: 1em;
+}
+
+@keyframes slide-animation {
+	from {
+		opacity: 0;
+		margin-left: 0;
+	}
+	to {
+		opacity: 1;
+		margin-left: 40px;
+	}
 }

@@ -23,17 +23,21 @@ const getDomNodeStyle = (node, dom) => ({
   }
 })
 
-function Network(props) {
-  const { edges, options, popupOptions, style } = props
-  const [nodes, setNodes] = useState(props.nodes)
-  const [popup, setPopup] = useState(null)
+const decideNodeDom = node => !!node.dom && !node.hidden
 
+function Network(props) {
+  const { edges, options, popups, style } = props
+  const [nodes, setNodes] = useState(props.nodes)
+  const [popupOnEdgeClick, setPopupOnEdgeClick] = useState(null)
+  const [popupOnNodeHover, setPopupOnNodeHover] = useState(null)
+
+  const popupOnNodeHoverRef = useRef()
+  const popupOnEdgeClickRef = useRef()
   const networkRef = useRef()
-  const popupRef = useRef()
   const domRef = useRef({})
 
   const getNodeDomCount = useCallback(() => {
-    return props.nodes.filter(node => !!node.dom).length
+    return props.nodes.filter(decideNodeDom).length
   }, [props.nodes])
 
   useEffect(() => {
@@ -88,14 +92,14 @@ function Network(props) {
   }
 
   const handleClick = e => {
-    const popupDom = popupRef.current
+    const popupDom = popupOnEdgeClickRef.current
 
     if (e.edges.length) {
-      if (popupOptions && popupOptions.getPopupOnEdgeClick) {
+      if (popups && popups.popupOnEdgeClick) {
         popupDom.style.left = e.event.center.x + 'px'
         popupDom.style.top = e.event.center.y + 'px'
         popupDom.style.opacity = 1
-        setPopup(popupOptions.getPopupOnEdgeClick(e))
+        setPopupOnEdgeClick(popups.popupOnEdgeClick(e.edges[0], e))
       }
     } else {
       popupDom.style.opacity = 0
@@ -104,20 +108,33 @@ function Network(props) {
   }
 
   const handleZoom = e => {
-    popupRef.current.style.opacity = 0
+    popupOnEdgeClickRef.current.style.opacity = 0
     props.events && props.events.zoom && props.events.zoom(e)
   }
 
   const handleDragStart = e => {
-    popupRef.current.style.opacity = 0
+    popupOnEdgeClickRef.current.style.opacity = 0
     props.events && props.events.dragStart && props.events.dragStart(e)
   }
 
   const handleHoverNode = e => {
+    const network = networkRef.current
+    const popupOnNodeHover = popupOnNodeHoverRef.current
+
+    if (popups && popups.popupOnNodeHover && popupOnNodeHover && network) {
+      const pos = network.getPosition(e.node)
+      const scale = network.getScale()
+      const { x, y } = network.canvasToDOM(pos)
+      popupOnNodeHover.style.left = `${x}px`
+      popupOnNodeHover.style.top = `${y}px`
+      popupOnNodeHover.style.transform = `translate(-50%, -50%) scale(${scale}) translateX(50%)`
+      setPopupOnNodeHover(popups.popupOnNodeHover(e.node, e))
+    }
     props.events && props.events.hoverNode && props.events.hoverNode(e)
   }
 
   const handleBlurNode = e => {
+    setPopupOnNodeHover(null)
     props.events && props.events.blurNode && props.events.blurNode(e)
   }
 
@@ -146,19 +163,22 @@ function Network(props) {
         getNetwork={getNetwork}
       />
       <div className='Network__overlays'>
-        {props.nodes.map(({ id, dom }) => !!dom && (
+        {props.nodes.map(node => decideNodeDom(node) && (
           <div
             className='Network__overlay-dom'
-            ref={getDomRef(id)}
+            ref={getDomRef(node.id)}
             onMouseMove={networkRef.current && networkRef.current.body.eventListeners.onMouseMove}
-            key={id}
+            key={node.id}
           >
-            {dom}
+            {node.dom}
           </div>
         ))}
       </div>
-      <div className='Network__popup' ref={popupRef}>
-        {popup}
+      <div className='Network__popup-edge-click' ref={popupOnEdgeClickRef}>
+        {popupOnEdgeClick}
+      </div>
+      <div className='Network__popup-node-hover' ref={popupOnNodeHoverRef}>
+        {popupOnNodeHover}
       </div>
     </div>
   )

@@ -1,4 +1,6 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faSave, faEye, faArrowRight } from '@fortawesome/free-solid-svg-icons'
 import Graph from '../components/Graph'
 import vo from './vis-options'
 import neo4j from 'neo4j-driver'
@@ -69,9 +71,16 @@ function App() {
     })
   }
 
-  const popupOptions = {
-    getPopupOnEdgeClick: e => (
-      <div className='popup'>{e.edges[0]}</div>
+  const popups = {
+    popupOnEdgeClick: (edge, e) => (
+      <div className='edge-popup'>{edge}</div>
+    ),
+    popupOnNodeHover: (node, e) => (
+      <div class="hover-popup">
+        <FontAwesomeIcon icon={faSave} title='Save' />
+        <FontAwesomeIcon icon={faEye} title='Hide/Unhide' />
+        <FontAwesomeIcon icon={faArrowRight} title='Open/Close the Direct Children' />
+      </div>
     )
   }
 
@@ -93,7 +102,7 @@ function App() {
         nodes={nodes}
         edges={edges}
         events={events}
-        popupOptions={popupOptions}
+        popups={popups}
         options={options}
       />
     </div>
