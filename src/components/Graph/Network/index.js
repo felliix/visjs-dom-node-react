@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import cn from 'classnames'
 import Graph from './react-network';
 import Hammer from 'hammerjs';
-import './Network.scss';
+import './style.scss';
 
 const getDomNodeStyle = (node, dom) => ({
   ...node,
@@ -26,7 +27,7 @@ const getDomNodeStyle = (node, dom) => ({
 const decideNodeDom = node => !!node.dom && !node.hidden
 
 function Network(props) {
-  const { edges, options, popups, style } = props
+  const { edges, options, popups, className, style } = props
   const [nodes, setNodes] = useState(props.nodes)
   const [popupOnEdgeClick, setPopupOnEdgeClick] = useState(null)
   const [popupOnNodeHover, setPopupOnNodeHover] = useState(null)
@@ -154,7 +155,7 @@ function Network(props) {
   }
 
   return (
-    <div className='Network' style={style}>
+    <div className={cn('Network', className)} style={style}>
       <Graph
         nodes={nodes}
         edges={edges}

@@ -1,0 +1,13 @@
+.Graph {
+  &__Tree {
+    overflow: auto;
+  }
+
+  &__Tree-icon {
+    width: 1em;
+    height: 1em;
+    display: block;
+    box-shadow: 1px 2px 3px 0px #0005;
+    border-radius: 50%;
+  }
+}

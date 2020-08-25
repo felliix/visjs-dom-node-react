@@ -4,8 +4,9 @@ import { faStop, faSave, faWrench, faSitemap, faProjectDiagram } from '@fortawes
 import Legend from '../Legend'
 import './style.scss'
 
-export default ({ groups, onToggleGroup, onFitWindow, onSearch }) => {
+export default ({ groups, onToggleGroup, onFitWindow, onSearch, onToggleView }) => {
   const [showLegend, setShowLegend] = useState(false)
+  const [view, setView] = useState(true)
   const legendRef = useRef();
 
   useEffect(() => {
@@ -30,6 +31,11 @@ export default ({ groups, onToggleGroup, onFitWindow, onSearch }) => {
 
   const handleLegendHover = () => setShowLegend(true)
 
+  const handleToggleView = () => {
+    setView(!view)
+    onToggleView && onToggleView(!view)
+  }
+
   return (
     <div className='Toolbar'>
       <input
@@ -38,6 +44,13 @@ export default ({ groups, onToggleGroup, onFitWindow, onSearch }) => {
         onKeyUp={handleSearchChange}
       />
       <div>
+        <span
+          title='Graph/Tree view'
+          className='Toolbar__Tool'
+          onClick={handleToggleView}
+        >
+          <FontAwesomeIcon icon={view ? faProjectDiagram : faSitemap} />
+        </span>
         <span
           title='Fit to window'
           onClick={onFitWindow}

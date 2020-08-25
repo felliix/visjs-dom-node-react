@@ -76,7 +76,7 @@ function App() {
       <div className='edge-popup'>{edge}</div>
     ),
     popupOnNodeHover: (node, e) => (
-      <div class="hover-popup">
+      <div className='hover-popup'>
         <FontAwesomeIcon icon={faSave} title='Save' />
         <FontAwesomeIcon icon={faEye} title='Hide/Unhide' />
         <FontAwesomeIcon icon={faArrowRight} title='Open/Close the Direct Children' />
