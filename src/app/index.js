@@ -20,6 +20,26 @@ const driver = mockDriver // neo4j
 //   </div>
 // )
 
+// const nodes = ['one', 'two', 'three', 'four'].map((label, i) => ({
+//   id: i + 1,
+//   label,
+//   dom: (
+//     <div className='overlay'>
+//       <div className='command-panel'>
+//         <span className='command' onClick={() => alert(`command 1 for node ${label}`)}>c1</span>
+//         <span className='command' onClick={() => alert(`command 2 for node ${label}`)}>c2</span>
+//       </div>
+//       {label}
+//     </div>
+//   )
+// }))
+
+// const edges = [
+//   {id: '1-3', from: 1, to: 3},
+//   {id: '1-2', from: 1, to: 2},
+//   {id: '1-4', from: 1, to: 4},
+// ]
+
 const visOptions = {
   height: '100%',
   width: '100%',
@@ -40,7 +60,8 @@ const visOptions = {
 }
 
 const options = {
-  height: '500px'
+  height: '500px',
+  toolbar: true
 }
 
 function App() {

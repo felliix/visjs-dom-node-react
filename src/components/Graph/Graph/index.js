@@ -10,6 +10,7 @@ import 'rc-tree/assets/index.css'
 export default props => {
   const { nodes, edges, events, popups, visOptions, className, options } = props
   const [hiddenGroups, setHiddenGroups] = useState([])
+  const [search, setSearch] = useState(null)
   const [view, setView] = useState(true)
   const networkRef = useRef(null)
   const focusNode = useRef(null)
@@ -18,7 +19,7 @@ export default props => {
     () => fp.compose(
       fp.map(group => ({
         name: group,
-        color: visOptions.groups ? visOptions.groups[group].color : null
+        color: (visOptions.groups && group && visOptions.groups[group]) ? visOptions.groups[group].color : null
       })),
       fp.sortBy(x => x),
       fp.uniq,
@@ -55,13 +56,13 @@ export default props => {
     [hiddenGroups, nodes]
   )
 
-  const getTreeData = useCallback(() => {
+  const treeData = useCallback(() => {
     const n = {}
     const to = []
     let root = null
     
     const nodes = manipulatedNodes.map(node => ({
-      key: node.id,
+      key: node.id.toString(),
       title: node.label,
       group: node.group,
       children: [],
@@ -100,6 +101,21 @@ export default props => {
 
     return [root]
   }, [manipulatedNodes, edges])
+
+  const expandedTreeKeys = useCallback(
+    () => !search ? [] : manipulatedNodes
+      .filter(node => node.label.toLowerCase().includes(search))
+      .map(node => node.id.toString()),
+    [search, manipulatedNodes]
+  )
+
+  const filterTreeNode = node => {
+    if (search === null || search.length === 0) {
+      return false
+    } else {
+      return node.title.toLowerCase().includes(search)
+    }
+  }
 
   const handleSearchChange = q => {
     const query = q.toLowerCase()
@@ -142,6 +158,8 @@ export default props => {
     } else {
       alert('Cannot find matching node')
     }
+
+    setSearch(query)
   }
 
   const handleFitWindow = () => {
@@ -152,32 +170,37 @@ export default props => {
 
   return (
     <div className={cn('Graph', className)}>
-      <Toolbar
-        groups={groups}
-        onToggleGroup={setHiddenGroups}
-        onFitWindow={handleFitWindow}
-        onSearch={handleSearchChange}
-        onToggleView={setView}
-      />
-      <Network
-        nodes={manipulatedNodes}
-        edges={edges}
-        events={events}
-        popups={popups}
-        options={visOptions}
-        getNetwork={getNetwork}
-        style={{
-          height: options.height,
-          display: view ? 'block' : 'none'
-        }}
-      />
-      {!view && (
-        <Tree
-          className='Graph__Tree'
-          treeData={getTreeData()}
-          style={{ height: options.height }}
+      {options.toolbar && (
+        <Toolbar
+          groups={groups}
+          hiddenGroups={hiddenGroups}
+          onToggleGroup={setHiddenGroups}
+          onFitWindow={handleFitWindow}
+          onSearch={handleSearchChange}
+          onToggleView={setView}
         />
       )}
+      <div className='Graph__Content' style={{height: options.height}}>
+        <Network
+          className='Graph__Network'
+          nodes={manipulatedNodes}
+          edges={edges}
+          events={events}
+          popups={popups}
+          options={visOptions}
+          getNetwork={getNetwork}
+          style={{ visibility: view ? 'visible' : 'hidden' }}
+        />
+        {!view && (
+          <Tree
+            className='Graph__Tree'
+            treeData={treeData()}
+            defaultExpandedKeys={expandedTreeKeys()}
+            filterTreeNode={filterTreeNode}
+            key={search}
+          />
+        )}
+      </div>
     </div>
   )
 }
