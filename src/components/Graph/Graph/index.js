@@ -10,6 +10,7 @@ import 'rc-tree/assets/index.css'
 export default props => {
   const { nodes, edges, events, popups, visOptions, className, options } = props
   const [hiddenGroups, setHiddenGroups] = useState([])
+  const [hoverInfo, setHoverInfo] = useState(null)
   const [search, setSearch] = useState(null)
   const [view, setView] = useState(true)
   const networkRef = useRef(null)
@@ -27,6 +28,19 @@ export default props => {
     )(nodes),
     [nodes, visOptions.groups]
   )
+
+  const info = useMemo(() => {
+    let node = 0, edge = 0, table = 0, system = 0
+    nodes.forEach(n => {
+      if (!n.hidden) {
+        node++
+        n.group === 'TABL' && table++
+        !n.isCustom && system++
+      }
+    })
+    edges.forEach(e => !e.hidden && edge++)
+    return { node, edge, table, system }
+  }, [nodes, edges])
 
   const icons = useMemo(
     () => {
@@ -100,7 +114,7 @@ export default props => {
     })
 
     return [root]
-  }, [manipulatedNodes, edges])
+  }, [manipulatedNodes, icons, edges])
 
   const expandedTreeKeys = useCallback(
     () => !search ? [] : manipulatedNodes
@@ -162,6 +176,21 @@ export default props => {
     setSearch(query)
   }
 
+  const handleHoverNode = e => {
+    if (networkRef.current) {
+      setHoverInfo({
+        inbound: networkRef.current.getConnectedNodes(e.node, 'from').length,
+        outbound: networkRef.current.getConnectedNodes(e.node, 'to').length
+      })
+    }
+    events.hoverNode && events.hoverNode(e)
+  }
+
+  const handleBlurNode = e => {
+    setHoverInfo(null)
+    events.blurNode && events.blurNode(e)
+  }
+
   const handleFitWindow = () => {
     networkRef.current && networkRef.current.fit({ animation: true })
   }
@@ -185,7 +214,11 @@ export default props => {
           className='Graph__Network'
           nodes={manipulatedNodes}
           edges={edges}
-          events={events}
+          events={{
+            ...events,
+            hoverNode: handleHoverNode,
+            blurNode: handleBlurNode
+          }}
           popups={popups}
           options={visOptions}
           getNetwork={getNetwork}
@@ -200,6 +233,32 @@ export default props => {
             key={search}
           />
         )}
+      </div>
+      <div className='Graph__BasicInfo'>
+        <div>
+          <strong>#Nodes</strong>&nbsp;
+          { info.node }
+        </div>
+        <div>
+          <strong>#Edges</strong>&nbsp;
+          { info.edge }
+        </div>
+        <div>
+          <strong>#Tables</strong>&nbsp;
+          { info.table }
+        </div>
+        <div>
+          <strong>#System</strong>&nbsp;
+          { info.system }
+        </div>
+        <div>
+          <strong>#Inbound</strong>&nbsp;
+          { hoverInfo && hoverInfo.inbound }
+        </div>
+        <div>
+          <strong>#Outbound</strong>&nbsp;
+          { hoverInfo &&hoverInfo.outbound }
+        </div>
       </div>
     </div>
   )

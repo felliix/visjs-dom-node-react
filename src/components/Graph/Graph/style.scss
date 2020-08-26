@@ -9,6 +9,16 @@
     width: 100%;
   }
 
+  &__BasicInfo {
+    display: flex;
+    flex-wrap: wrap;
+    font-size: small;
+
+    div {
+      width: 10em;
+    }
+  }
+
   &__Tree {
     overflow: auto;
     position: absolute;
