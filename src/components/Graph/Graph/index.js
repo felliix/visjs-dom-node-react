@@ -251,14 +251,18 @@ export default props => {
           <strong>#System</strong>&nbsp;
           { info.system }
         </div>
-        <div>
-          <strong>#Inbound</strong>&nbsp;
-          { hoverInfo && hoverInfo.inbound }
-        </div>
-        <div>
-          <strong>#Outbound</strong>&nbsp;
-          { hoverInfo &&hoverInfo.outbound }
-        </div>
+        {hoverInfo && (
+          <>
+            <div>
+              <strong>#Inbound</strong>&nbsp;
+              { hoverInfo.inbound }
+            </div>
+            <div>
+              <strong>#Outbound</strong>&nbsp;
+              { hoverInfo.outbound }
+            </div>
+          </>
+        )}
       </div>
     </div>
   )
