@@ -1,8 +1,8 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react'
 import cn from 'classnames'
-import Graph from './react-network';
-import Hammer from 'hammerjs';
-import './style.scss';
+import Graph from './react-network'
+import Hammer from 'hammerjs'
+import './style.scss'
 
 const getDomNodeStyle = (node, dom) => ({
   ...node,
@@ -26,14 +26,26 @@ const getDomNodeStyle = (node, dom) => ({
 
 const decideNodeDom = node => !!node.dom && !node.hidden
 
+const connectHammer = (el, network) => {
+  const hammer = new Hammer(el)
+  hammer.on('hammer.input', e => e.isFirst && network.body.eventListeners.onTouch(e))
+  hammer.on('panstart', network.body.eventListeners.onDragStart)
+  hammer.on('panmove', network.body.eventListeners.onDrag)
+  hammer.on('panend', network.body.eventListeners.onDragEnd)
+  hammer.on('press', network.body.eventListeners.onHold)
+  hammer.on('tap', network.body.eventListeners.onTap)
+}
+
 function Network(props) {
   const { edges, options, popups, className, style } = props
+
   const [nodes, setNodes] = useState(props.nodes)
   const [popupOnEdgeClick, setPopupOnEdgeClick] = useState(null)
   const [popupOnNodeHover, setPopupOnNodeHover] = useState(null)
 
   const popupOnNodeHoverRef = useRef()
   const popupOnEdgeClickRef = useRef()
+  const hoverNodeRef = useRef()
   const networkRef = useRef()
   const domRef = useRef({})
 
@@ -54,20 +66,18 @@ function Network(props) {
 
     if (!dom[key] && el) {
       dom[key] = el
-
-      if (network) {
-        const hammer = new Hammer(el)
-        hammer.on('hammer.input', e => e.isFirst && network.body.eventListeners.onTouch(e))
-        hammer.on('panstart', network.body.eventListeners.onDragStart)
-        hammer.on('panmove', network.body.eventListeners.onDrag)
-        hammer.on('panend', network.body.eventListeners.onDragEnd)
-        hammer.on('press', network.body.eventListeners.onHold)
-        hammer.on('tap', network.body.eventListeners.onTap)
-      }
+      network && connectHammer(el, network)
 
       if (Object.keys(dom).length === getNodeDomCount()) {
         setNodes(props.nodes.map(node => getDomNodeStyle(node, dom[node.id])))
       }
+    }
+  }
+
+  const getPopupOnNodeHoverRef = el => {
+    if (el && !popupOnNodeHoverRef.current) {
+      connectHammer(el, networkRef.current)
+      popupOnNodeHoverRef.current = el
     }
   }
 
@@ -87,6 +97,18 @@ function Network(props) {
         dom[id].style.left = `${x}px`
         dom[id].style.top = `${y}px`
         dom[id].style.transform = `translate(-50%, -50%) scale(${scale})`
+      }
+
+      if (hoverNodeRef.current === id) {
+        const popupOnNodeHover = popupOnNodeHoverRef.current
+        const { x, y } = network.canvasToDOM({
+          x: pos[id].x,
+          y: pos[id].y
+        })
+
+        popupOnNodeHover.style.left = `${x}px`
+        popupOnNodeHover.style.top = `${y}px`
+        popupOnNodeHover.style.transform = `translate(-50%, -50%) scale(${scale}) translateX(50%)`
       }
     })
     props.events && props.events.afterDrawing && props.events.afterDrawing(e)
@@ -129,14 +151,24 @@ function Network(props) {
       popupOnNodeHover.style.left = `${x}px`
       popupOnNodeHover.style.top = `${y}px`
       popupOnNodeHover.style.transform = `translate(-50%, -50%) scale(${scale}) translateX(50%)`
+      hoverNodeRef.current = e.node
       setPopupOnNodeHover(popups.popupOnNodeHover(e.node, e))
     }
     props.events && props.events.hoverNode && props.events.hoverNode(e)
   }
 
   const handleBlurNode = e => {
-    setPopupOnNodeHover(null)
-    props.events && props.events.blurNode && props.events.blurNode(e)
+    if (e.event.buttons === 0) {
+      hoverNodeRef.current = null
+      setPopupOnNodeHover(null)
+      props.events && props.events.blurNode && props.events.blurNode(e)
+    }
+  }
+
+  const handleDomMouseMove = e => {
+    if (networkRef.current) {
+      networkRef.current.body.eventListeners.onMouseMove(e)
+    }
   }
 
   const getNetwork = obj => {
@@ -167,8 +199,8 @@ function Network(props) {
         {props.nodes.map(node => decideNodeDom(node) && (
           <div
             className='Network__overlay-dom'
+            onMouseMove={handleDomMouseMove}
             ref={getDomRef(node.id)}
-            onMouseMove={networkRef.current && networkRef.current.body.eventListeners.onMouseMove}
             key={node.id}
           >
             {node.dom}
@@ -178,7 +210,7 @@ function Network(props) {
       <div className='Network__popup-edge-click' ref={popupOnEdgeClickRef}>
         {popupOnEdgeClick}
       </div>
-      <div className='Network__popup-node-hover' ref={popupOnNodeHoverRef}>
+      <div className='Network__popup-node-hover' ref={getPopupOnNodeHoverRef} >
         {popupOnNodeHover}
       </div>
     </div>

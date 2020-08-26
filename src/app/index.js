@@ -10,16 +10,6 @@ import './style.scss'
 
 const driver = mockDriver // neo4j
 
-// dom: (
-//   <div className='overlay'>
-//     <div className='command-panel'>
-//       <span className='command' onClick={() => alert(`command 1 for node ${label}`)}>c1</span>
-//       <span className='command' onClick={() => alert(`command 2 for node ${label}`)}>c2</span>
-//     </div>
-//     {label}
-//   </div>
-// )
-
 // const nodes = ['one', 'two', 'three', 'four'].map((label, i) => ({
 //   id: i + 1,
 //   label,
@@ -98,7 +88,7 @@ function App() {
     ),
     popupOnNodeHover: (node, e) => (
       <div className='hover-popup'>
-        <FontAwesomeIcon icon={faSave} title='Save' />
+        <FontAwesomeIcon icon={faSave} title='Save' onClick={() => console.log('hi')}/>
         <FontAwesomeIcon icon={faEye} title='Hide/Unhide' />
         <FontAwesomeIcon icon={faArrowRight} title='Open/Close the Direct Children' />
       </div>
