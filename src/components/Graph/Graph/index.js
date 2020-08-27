@@ -4,17 +4,20 @@ import fp from 'lodash/fp'
 import Tree from 'rc-tree'
 import Network from '../Network'
 import Toolbar from '../Toolbar'
+import { csvExport } from '../Helpers'
 import './style.scss'
 import 'rc-tree/assets/index.css'
 
 export default props => {
   const { nodes, edges, events, popups, visOptions, className, options } = props
+  
   const [hiddenGroups, setHiddenGroups] = useState([])
   const [hoverInfo, setHoverInfo] = useState(null)
   const [search, setSearch] = useState(null)
   const [view, setView] = useState(true)
+  
   const networkRef = useRef(null)
-  const focusNode = useRef(null)
+  const focusNodeRef = useRef(null)
 
   const groups = useMemo(
     () => fp.compose(
@@ -157,17 +160,18 @@ export default props => {
           })
         }
 
-        if (focusNode.current) {
-          if (focusNode.current.dom) {
+        if (focusNodeRef.current) {
+          if (focusNodeRef.current.dom) {
             // todo
           } else {
-            update.push(focusNode.current)
+            // restore previously focused node
+            update.push(focusNodeRef.current)
           }
         }
 
         networkRef.current.focus(node.id, option)
         networkRef.current.body.data.nodes.update(update)
-        focusNode.current = node
+        focusNodeRef.current = node
       }
     } else {
       alert('Cannot find matching node')
@@ -176,7 +180,7 @@ export default props => {
     setSearch(query)
   }
 
-  const handleHoverNode = e => {
+  const handleNodeHover = e => {
     if (networkRef.current) {
       setHoverInfo({
         inbound: networkRef.current.getConnectedNodes(e.node, 'from').length,
@@ -186,16 +190,57 @@ export default props => {
     events.hoverNode && events.hoverNode(e)
   }
 
-  const handleBlurNode = e => {
+  const handleNodeBlur = e => {
     setHoverInfo(null)
     events.blurNode && events.blurNode(e)
   }
+  
+  const handleClick = e => {
+    const network = networkRef.current
+    const focusNode = focusNodeRef.current
+    
+    network && focusNode && network.body.data.nodes.update(focusNode)
+    focusNodeRef.current = null
+    events.click && events.click(e)
+  }
 
+  const handleSaveClick = () => {
+    const csvData = fp.compose(
+      fp.filter(row => !!row),
+      fp.map(([ id, e ]) => {
+        const from = e.from.options
+        const to = e.to.options
+
+        if (from.hidden || to.hidden) {
+          return null
+        }
+
+        return {
+          fromType: from.group,
+          fromTechnicalname: from.technicalName,
+          fromDisplayName: from.label,
+          fromDescription: from.title,
+          relationship: e.options.type,
+          toType: to.group,
+          toTechnicalname: to.technicalName,
+          toDisplayName: to.label,
+          toDescription: to.title
+        }
+      }),
+      fp.toPairs
+    )(networkRef.current.body.edges)
+
+    csvExport("object-relationships.csv", csvData)
+  }
+  
   const handleFitWindow = () => {
     networkRef.current && networkRef.current.fit({ animation: true })
   }
   
-  const getNetwork = network => networkRef.current = network
+  const getNetwork = network => {
+    networkRef.current = network
+    props.getNetwork && props.getNetwork(network)
+  }
 
   return (
     <div className={cn('Graph', className)}>
@@ -205,6 +250,7 @@ export default props => {
           hiddenGroups={hiddenGroups}
           onToggleGroup={setHiddenGroups}
           onFitWindow={handleFitWindow}
+          onSaveClick={handleSaveClick}
           onSearch={handleSearchChange}
           onToggleView={setView}
         />
@@ -216,8 +262,9 @@ export default props => {
           edges={edges}
           events={{
             ...events,
-            hoverNode: handleHoverNode,
-            blurNode: handleBlurNode
+            click: handleClick,
+            hoverNode: handleNodeHover,
+            blurNode: handleNodeBlur
           }}
           popups={popups}
           options={visOptions}

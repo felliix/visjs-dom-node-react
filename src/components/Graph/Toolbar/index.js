@@ -4,7 +4,7 @@ import { faStop, faSave, faWrench, faSitemap, faProjectDiagram } from '@fortawes
 import Legend from '../Legend'
 import './style.scss'
 
-export default ({ groups, hiddenGroups, onToggleGroup, onFitWindow, onSearch, onToggleView }) => {
+export default ({ groups, hiddenGroups, onToggleGroup, onFitWindow, onSaveClick, onSearch, onToggleView }) => {
   const [showLegend, setShowLegend] = useState(false)
   const [view, setView] = useState(true)
   const legendRef = useRef();
@@ -58,7 +58,11 @@ export default ({ groups, hiddenGroups, onToggleGroup, onFitWindow, onSearch, on
         >
           <FontAwesomeIcon icon={faStop} />
         </span>
-        <span title='Save network' className='Toolbar__Tool'>
+        <span
+          title='Save network'
+          onClick={onSaveClick}
+          className='Toolbar__Tool'
+        >
           <FontAwesomeIcon icon={faSave} />
         </span>
         <span onMouseEnter={handleLegendHover} className='Toolbar__Tool'>
