@@ -1,4 +1,4 @@
-import data from '../data/query-mock.json';
+import data from 'data/query-mock.json';
 
 const run = () => new Promise(resolve => resolve({
   records: data.map(d => {

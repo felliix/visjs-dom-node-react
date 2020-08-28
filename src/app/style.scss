@@ -60,6 +60,10 @@ body {
 .hover-popup {
   svg {
     display: block;
+
+    &:hover {
+      color: gray;
+    }
   }
   
 	background-color: transparent;

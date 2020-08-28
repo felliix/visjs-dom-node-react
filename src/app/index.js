@@ -1,11 +1,11 @@
 import React, { useEffect, useState, useRef } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faSave, faEye, faArrowRight } from '@fortawesome/free-solid-svg-icons'
-import Graph from '../components/Graph'
+import Graph from 'components/Graph'
 import vo from './vis-options'
 import neo4j from 'neo4j-driver'
 import mockDriver from './mock-driver'
-import queryGraph from '../neo4j'
+import queryGraph from 'neo4j'
 import './style.scss'
 
 const driver = mockDriver // neo4j
@@ -60,9 +60,10 @@ function App() {
   const searchRef = useRef()
 
   useEffect(() => {
-    if (searchRef.current) {
-      const q = localStorage.getItem('search')
+    const q = localStorage.getItem('search')
+    if (q && searchRef.current) {
       searchRef.current.value = q
+      searchRef.current.setAttribute('value', q)
       search(q)
     }
   }, [])
