@@ -34,6 +34,7 @@ const connectHammer = (el, network) => {
   hammer.on('panend', network.body.eventListeners.onDragEnd)
   hammer.on('press', network.body.eventListeners.onHold)
   hammer.on('tap', network.body.eventListeners.onTap)
+  el.addEventListener('wheel', network.body.eventListeners.onMouseWheel)
 }
 
 function Network(props) {
@@ -122,7 +123,7 @@ function Network(props) {
         popupDom.style.left = e.event.center.x + 'px'
         popupDom.style.top = e.event.center.y + 'px'
         popupDom.style.opacity = 1
-        setPopupOnEdgeClick(popups.popupOnEdgeClick(e.edges[0], e))
+        setPopupOnEdgeClick(popups.popupOnEdgeClick(e))
       }
     } else {
       popupDom.style.opacity = 0
@@ -152,7 +153,7 @@ function Network(props) {
       popupOnNodeHover.style.top = `${y}px`
       popupOnNodeHover.style.transform = `translate(-50%, -50%) scale(${scale}) translateX(50%)`
       hoverNodeRef.current = e.node
-      setPopupOnNodeHover(popups.popupOnNodeHover(e.node, e))
+      setPopupOnNodeHover(popups.popupOnNodeHover(e))
     }
     props.events && props.events.hoverNode && props.events.hoverNode(e)
   }

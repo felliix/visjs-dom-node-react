@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faSave, faEye, faArrowRight } from '@fortawesome/free-solid-svg-icons'
-import Graph from 'components/Graph'
+import Graph, { iterateFrom, csvExport, dumpEdge } from 'components/Graph'
 import vo from './vis-options'
 import neo4j from 'neo4j-driver'
 import mockDriver from './mock-driver'
@@ -57,6 +57,7 @@ const options = {
 function App() {
   const [nodes, setNodes] = useState([])
   const [edges, setEdges] = useState([])
+  const networkRef = useRef()
   const searchRef = useRef()
 
   useEffect(() => {
@@ -83,13 +84,22 @@ function App() {
     })
   }
 
+  const handleSaveClick = nodeId => () => {
+    const network = networkRef.current
+    if (network) {
+      const node = network.body.nodes[nodeId]
+      const dump = iterateFrom(node).edges.map(dumpEdge)
+      csvExport('objectRelationships.csv', dump)
+    }
+  }
+
   const popups = {
-    popupOnEdgeClick: (edge, e) => (
-      <div className='edge-popup'>{edge}</div>
+    popupOnEdgeClick: e => (
+      <div className='edge-popup'>{e.edges[0]}</div>
     ),
-    popupOnNodeHover: (node, e) => (
+    popupOnNodeHover: e => (
       <div className='hover-popup'>
-        <FontAwesomeIcon icon={faSave} title='Save' onClick={() => console.log('hi')}/>
+        <FontAwesomeIcon icon={faSave} title='Save' onClick={handleSaveClick(e.node)}/>
         <FontAwesomeIcon icon={faEye} title='Hide/Unhide' />
         <FontAwesomeIcon icon={faArrowRight} title='Open/Close the Direct Children' />
       </div>
@@ -99,6 +109,8 @@ function App() {
   const events = {
     click: () => console.log('hihi')
   }
+
+  const getNetwork = network => networkRef.current = network
 
   return (
     <div className='App'>
@@ -116,6 +128,7 @@ function App() {
         events={events}
         popups={popups}
         options={options}
+        getNetwork={getNetwork}
       />
     </div>
   );

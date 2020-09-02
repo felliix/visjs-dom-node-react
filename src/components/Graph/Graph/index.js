@@ -4,7 +4,7 @@ import fp from 'lodash/fp'
 import Tree from 'rc-tree'
 import Network from '../Network'
 import Toolbar from '../Toolbar'
-import { csvExport } from '../Helpers'
+import { csvExport, iterateAll, dumpEdge } from '../Helpers'
 import './style.scss'
 import 'rc-tree/assets/index.css'
 
@@ -181,10 +181,13 @@ export default props => {
   }
 
   const handleNodeHover = e => {
-    if (networkRef.current) {
+    const network = networkRef.current
+    if (network) {
+      const node = network.body.nodes[e.node]
       setHoverInfo({
-        inbound: networkRef.current.getConnectedNodes(e.node, 'from').length,
-        outbound: networkRef.current.getConnectedNodes(e.node, 'to').length
+        inbound: network.getConnectedNodes(e.node, 'from').length,
+        outbound: network.getConnectedNodes(e.node, 'to').length,
+        description: node.options.technicalName
       })
     }
     events.hoverNode && events.hoverNode(e)
@@ -205,31 +208,7 @@ export default props => {
   }
 
   const handleSaveClick = () => {
-    const csvData = fp.compose(
-      fp.filter(row => !!row),
-      fp.map(([ id, e ]) => {
-        const from = e.from.options
-        const to = e.to.options
-
-        if (from.hidden || to.hidden) {
-          return null
-        }
-
-        return {
-          fromType: from.group,
-          fromTechnicalname: from.technicalName,
-          fromDisplayName: from.label,
-          fromDescription: from.title,
-          relationship: e.options.type,
-          toType: to.group,
-          toTechnicalname: to.technicalName,
-          toDisplayName: to.label,
-          toDescription: to.title
-        }
-      }),
-      fp.toPairs
-    )(networkRef.current.body.edges)
-
+    const csvData = iterateAll(networkRef.current.body).edges.map(dumpEdge)
     csvExport("object-relationships.csv", csvData)
   }
   
@@ -307,6 +286,10 @@ export default props => {
             <div>
               <strong>#Outbound</strong>&nbsp;
               { hoverInfo.outbound }
+            </div>
+            <div>
+              <strong>#Description</strong>&nbsp;
+              { hoverInfo.description }
             </div>
           </>
         )}

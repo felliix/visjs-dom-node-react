@@ -2,6 +2,7 @@ import FileSaver from 'file-saver'
 
 export function csvExport(fileName, data, delimiter = ',') {
 	if (!data.length) {
+		alert('No data to download')
 		return
 	}
 
