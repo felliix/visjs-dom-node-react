@@ -18,8 +18,13 @@ export const iterateAll = body => {
   return { edges, nodes }
 }
 
-export const iterateFrom = node => {
+export const iterateFrom = (node, opt) => {
   const history = { nodes: [], edges: [] }
+  const option = {
+    self: true,
+    direct: false,
+    ...opt
+  }
 
   const _iterate = node => {
     history.nodes.push(node)
@@ -43,11 +48,19 @@ export const iterateFrom = node => {
         return
       }
   
-      _iterate(to, history)
+      if (option.direct) {
+        history.nodes.push(to)
+      } else {
+        _iterate(to, history)
+      }
     })
   }
 
   _iterate(node)
+
+  if (!option.self) {
+    history.nodes = history.nodes.filter(n => n !== node)
+  }
   
   return history
 }

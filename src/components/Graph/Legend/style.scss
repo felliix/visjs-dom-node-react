@@ -7,9 +7,12 @@
   &__Legend-item {
     display: flex;
     align-items: center;
-    margin-bottom: .5em;
     cursor: pointer;
     transition: .2s ease opacity;
+    
+    &:not(:last-child) {
+      margin-bottom: .5em;
+    }
     
     &:hover {
       opacity: .6;

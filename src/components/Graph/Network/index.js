@@ -61,6 +61,15 @@ function Network(props) {
     }
   }, [props.nodes, getNodeDomCount])
 
+  useEffect(() => {
+    if (popupOnNodeHover) {
+      setPopupOnNodeHover({
+        render: popups.popupOnNodeHover(popupOnNodeHover.event),
+        event: popupOnNodeHover.event
+      })
+    }
+  }, [props.nodes])
+
   const getDomRef = key => el => {
     const dom = domRef.current
     const network = networkRef.current
@@ -149,11 +158,16 @@ function Network(props) {
       const pos = network.getPosition(e.node)
       const scale = network.getScale()
       const { x, y } = network.canvasToDOM(pos)
+
       popupOnNodeHover.style.left = `${x}px`
       popupOnNodeHover.style.top = `${y}px`
       popupOnNodeHover.style.transform = `translate(-50%, -50%) scale(${scale}) translateX(50%)`
       hoverNodeRef.current = e.node
-      setPopupOnNodeHover(popups.popupOnNodeHover(e))
+
+      setPopupOnNodeHover({
+        render: popups.popupOnNodeHover(e),
+        event: e
+      })
     }
     props.events && props.events.hoverNode && props.events.hoverNode(e)
   }
@@ -212,7 +226,7 @@ function Network(props) {
         {popupOnEdgeClick}
       </div>
       <div className='Network__popup-node-hover' ref={getPopupOnNodeHoverRef} >
-        {popupOnNodeHover}
+        {popupOnNodeHover && popupOnNodeHover.render}
       </div>
     </div>
   )

@@ -4,7 +4,7 @@ import fp from 'lodash/fp'
 import Tree from 'rc-tree'
 import Network from '../Network'
 import Toolbar from '../Toolbar'
-import { csvExport, iterateAll, dumpEdge } from '../Helpers'
+import { csvExport, iterateAll, dumpEdge, styles } from '../Helpers'
 import './style.scss'
 import 'rc-tree/assets/index.css'
 
@@ -13,11 +13,12 @@ export default props => {
   
   const [hiddenGroups, setHiddenGroups] = useState([])
   const [hoverInfo, setHoverInfo] = useState(null)
+  const [highlightInfo, setHighlightInfo] = useState(null)
   const [search, setSearch] = useState(null)
   const [view, setView] = useState(true)
   
   const networkRef = useRef(null)
-  const focusNodeRef = useRef(null)
+  const highlightRef = useRef(null)
 
   const groups = useMemo(
     () => fp.compose(
@@ -63,7 +64,7 @@ export default props => {
 
   const manipulatedNodes = useMemo(
     () => nodes.map(node => {
-      const hidden = hiddenGroups.includes(node.group)
+      const hidden = node.hidden || hiddenGroups.includes(node.group)
       return {
         ...node,
         hidden,
@@ -134,6 +135,42 @@ export default props => {
     }
   }
 
+  const highlightNode = node => {
+    const network = networkRef.current
+    const update = []
+
+    if (node) {
+      if (node.dom) {
+        // todo
+      } else {
+        update.push({
+          ...node,
+          ...styles.highlight
+        })
+      }
+
+      setHighlightInfo({
+        inbound: network.getConnectedNodes(node.id, 'from').length,
+        outbound: network.getConnectedNodes(node.id, 'to').length,
+        description: network.body.nodes[node.id].options.technicalName
+      })
+    } else {
+      setHighlightInfo(null)
+    }
+
+    if (highlightRef.current) {
+      if (highlightRef.current.dom) {
+        // todo
+      } else {
+        // restore previously focused node
+        update.push(highlightRef.current)
+      }
+    }
+
+    networkRef.current.body.data.nodes.update(update)
+    highlightRef.current = node
+  }
+
   const handleSearchChange = q => {
     const query = q.toLowerCase()
     const node = nodes.find(node => (
@@ -142,37 +179,14 @@ export default props => {
     ))
     
     if (node) {
-      if (networkRef.current) {
-        const update = []
-        const option = {
-          scale: 1.25,
-          offset: { x: 0, y: 0 },
-          animation: true
-        }
-        
-        if (node.dom) {
-          // todo
-        } else {
-          update.push({
-            ...node,
-            borderWidth: 5,
-            color: { border: 'yellow' }
-          })
-        }
-
-        if (focusNodeRef.current) {
-          if (focusNodeRef.current.dom) {
-            // todo
-          } else {
-            // restore previously focused node
-            update.push(focusNodeRef.current)
-          }
-        }
-
-        networkRef.current.focus(node.id, option)
-        networkRef.current.body.data.nodes.update(update)
-        focusNodeRef.current = node
+      const option = {
+        scale: 1.25,
+        offset: { x: 0, y: 0 },
+        animation: true
       }
+
+      networkRef.current.focus(node.id, option)
+      highlightNode(node)
     } else {
       alert('Cannot find matching node')
     }
@@ -183,11 +197,10 @@ export default props => {
   const handleNodeHover = e => {
     const network = networkRef.current
     if (network) {
-      const node = network.body.nodes[e.node]
       setHoverInfo({
         inbound: network.getConnectedNodes(e.node, 'from').length,
         outbound: network.getConnectedNodes(e.node, 'to').length,
-        description: node.options.technicalName
+        description: network.body.nodes[e.node].options.technicalName
       })
     }
     events.hoverNode && events.hoverNode(e)
@@ -199,11 +212,8 @@ export default props => {
   }
   
   const handleClick = e => {
-    const network = networkRef.current
-    const focusNode = focusNodeRef.current
-    
-    network && focusNode && network.body.data.nodes.update(focusNode)
-    focusNodeRef.current = null
+    const node = e.nodes.length ? nodes.find(node => node.id === e.nodes[0]) : null
+    highlightNode(node)
     events.click && events.click(e)
   }
 
@@ -226,6 +236,7 @@ export default props => {
       {options.toolbar && (
         <Toolbar
           groups={groups}
+          extendLegend={options.extendLegend}
           hiddenGroups={hiddenGroups}
           onToggleGroup={setHiddenGroups}
           onFitWindow={handleFitWindow}
@@ -277,6 +288,26 @@ export default props => {
           <strong>#System</strong>&nbsp;
           { info.system }
         </div>
+
+        {highlightInfo ? (
+          <>
+            <div>
+              <strong>#Inbound</strong>&nbsp;
+              { highlightInfo.inbound }
+            </div>
+            <div>
+              <strong>#Outbound</strong>&nbsp;
+              { highlightInfo.outbound }
+            </div>
+            <div>
+              <strong>#Description</strong>&nbsp;
+              { highlightInfo.description }
+            </div>
+          </>
+        ) : (
+          <div>No highlight</div>
+        )}
+
         {hoverInfo && (
           <>
             <div>

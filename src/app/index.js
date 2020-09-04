@@ -1,14 +1,19 @@
 import React, { useEffect, useState, useRef } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faSave, faEye, faArrowRight } from '@fortawesome/free-solid-svg-icons'
-import Graph, { iterateFrom, csvExport, dumpEdge } from 'components/Graph'
+import { faSave, faEye, faEyeSlash, faArrowRight, faArrowLeft } from '@fortawesome/free-solid-svg-icons'
+import fp from 'lodash/fp'
+import xor from 'lodash/xor'
+import Graph, { iterateFrom, csvExport, dumpEdge, styles } from 'components/Graph'
 import vo from './vis-options'
 import neo4j from 'neo4j-driver'
 import mockDriver from './mock-driver'
 import queryGraph from 'neo4j'
 import './style.scss'
 
-const driver = mockDriver // neo4j
+// const driver = neo4j
+const driver = mockDriver
+
+const fpIterateFrom = opt => node => iterateFrom(node, opt)
 
 // const nodes = ['one', 'two', 'three', 'four'].map((label, i) => ({
 //   id: i + 1,
@@ -49,16 +54,13 @@ const visOptions = {
   ...vo
 }
 
-const options = {
-  height: '500px',
-  toolbar: true
-}
-
 function App() {
   const [nodes, setNodes] = useState([])
   const [edges, setEdges] = useState([])
   const networkRef = useRef()
   const searchRef = useRef()
+  const allHideRef = useRef([])
+  const highlightsRef = useRef([])
 
   useEffect(() => {
     const q = localStorage.getItem('search')
@@ -85,25 +87,103 @@ function App() {
   }
 
   const handleSaveClick = nodeId => () => {
-    const network = networkRef.current
-    if (network) {
-      const node = network.body.nodes[nodeId]
-      const dump = iterateFrom(node).edges.map(dumpEdge)
-      csvExport('objectRelationships.csv', dump)
-    }
+    const dump = fp.compose(
+      fp.map(dumpEdge),
+      fp.get('edges'),
+      fpIterateFrom(),
+      fp.get(`body.nodes[${nodeId}]`)
+    )(networkRef.current)
+    csvExport('objectRelationships.csv', dump)
+  }
+
+  const handleHideClick = nodeId => () => {
+    const descendants = fp.compose(
+      fp.map(node => node.id),
+      fp.get('nodes'),
+      fpIterateFrom({ self: false }),
+      fp.get(`body.nodes[${nodeId}]`)
+    )(networkRef.current)
+    const hidden = !allHideRef.current.includes(nodeId)
+    const update = nodes.map(node => descendants.includes(node.id) ? { ...node, hidden } : node )
+    allHideRef.current = xor(allHideRef.current, [nodeId])
+    setNodes(update)
+  }
+
+  const handleOpenDirect = (nodeId, expand) => () => {
+    const descendants = fp.compose(
+      fp.map(node => node.id),
+      fp.get('nodes'),
+      fpIterateFrom({ self: false, direct: expand }),
+      fp.get(`body.nodes[${nodeId}]`)
+    )(networkRef.current)
+    const update = nodes.map(node => descendants.includes(node.id) ? { ...node, hidden: !expand } : node )
+    setNodes(update)
   }
 
   const popups = {
     popupOnEdgeClick: e => (
       <div className='edge-popup'>{e.edges[0]}</div>
     ),
-    popupOnNodeHover: e => (
-      <div className='hover-popup'>
-        <FontAwesomeIcon icon={faSave} title='Save' onClick={handleSaveClick(e.node)}/>
-        <FontAwesomeIcon icon={faEye} title='Hide/Unhide' />
-        <FontAwesomeIcon icon={faArrowRight} title='Open/Close the Direct Children' />
-      </div>
-    )
+    popupOnNodeHover: e => {
+      const node = networkRef.current.body.nodes[e.node]
+      const ids = node.edges.filter(({ from }) => from === node).map(edge => edge.to.id)
+      const outgoings = nodes.filter(node => ids.includes(node.id))
+      const expand = outgoings.every(node => node.hidden)
+      const hide = allHideRef.current.includes(e.node)
+
+      return (
+        <div className='hover-popup'>
+          <FontAwesomeIcon
+            icon={faSave}
+            title='Save'
+            onClick={handleSaveClick(e.node)}
+          />
+          <FontAwesomeIcon
+            icon={hide ? faEye :faEyeSlash}
+            title='Hide/Unhide Descendants'
+            onClick={handleHideClick(e.node)}
+          />
+
+          {!!outgoings.length && (
+            <FontAwesomeIcon
+              icon={expand ? faArrowRight : faArrowLeft}
+              title='Open/Close the Direct Children'
+              onClick={handleOpenDirect(e.node, expand)}
+            />
+          )}
+        </div>
+      )
+    }
+  }
+
+  const options = {
+    height: '500px',
+    toolbar: true,
+    extendLegend: [{
+      label: 'Highlights',
+      items: [
+        {
+          label: 'System Object',
+          onClick: () => {
+            setNodes(nodes => {
+              if (highlightsRef.current.includes('system')) {
+                return nodes.map(node => node.isCustom ? node : {
+                  ...node,
+                  borderWidth: 0,
+                  color: { border: null }
+                })
+              } else {
+                return nodes.map(node => node.isCustom ? node : {
+                  ...node,
+                  ...styles.highlight
+                })
+              }
+            })
+            highlightsRef.current = xor(highlightsRef.current, ['system'])
+          }
+        }
+      ]
+    }]
   }
 
   const events = {

@@ -10,7 +10,7 @@ import {
 import xor from 'lodash/xor'
 import './style.scss'
 
-export default React.forwardRef(({ className, groups, hiddenGroups, onToggleGroup }, ref) => {
+export default React.forwardRef(({ className, extend, groups, hiddenGroups, onToggleGroup }, ref) => {
   const [hidden, setHidden] = useState(hiddenGroups || [])
   
   const handleGroupClick = name => () => {
@@ -50,16 +50,22 @@ export default React.forwardRef(({ className, groups, hiddenGroups, onToggleGrou
             ))}
           </AccordionItemPanel>
         </AccordionItem>
-        <AccordionItem>
-          <AccordionItemHeading>
-            <AccordionItemButton>
-              Highlight
-            </AccordionItemButton>
-          </AccordionItemHeading>
-          <AccordionItemPanel>
-            asdf
-          </AccordionItemPanel>
-        </AccordionItem>
+        {extend && extend.map(({ label, items }, key) => (
+          <AccordionItem key={key}>
+            <AccordionItemHeading>
+              <AccordionItemButton>
+                {label}
+              </AccordionItemButton>
+            </AccordionItemHeading>
+            <AccordionItemPanel>
+              {items.map(({ label, onClick }, key) => (
+                <div key={key} onClick={onClick} className='Legend__Legend-item'>
+                  {label}
+                </div>
+              ))}
+            </AccordionItemPanel>
+          </AccordionItem>
+        ))}
       </Accordion>
     </div>
   )
