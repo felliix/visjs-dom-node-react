@@ -187,7 +187,42 @@ function App() {
   }
 
   const events = {
-    click: () => console.log('hihi')
+    click: () => console.log('hihi'),
+    dragStart: e => {
+      if (!e.nodes.length) {
+        return
+      }
+      const node = networkRef.current.body.nodes[e.nodes[0]]
+      node.options.fixed.y = false
+      node.options.fixed.x = false
+    },
+    dragEnd: e => {
+      if (!e.nodes.length) {
+        return
+      }
+      const node = networkRef.current.body.nodes[e.nodes[0]]
+      node.options.fixed.y = true
+      node.options.fixed.x = true
+    },
+    stabilizationIterationsDone: () => {
+      const network = networkRef.current
+      network.moveTo({
+        position : {
+          x : 0,
+          y : 0
+         },
+      });
+      network.setOptions({
+        physics : {
+          enabled : true,
+          stabilization : {
+            fit : true,
+            enabled : true,
+          }
+        }
+      });
+      network.fit();
+    }
   }
 
   const getNetwork = network => networkRef.current = network
@@ -200,16 +235,18 @@ function App() {
         placeholder='Search the codebase'
         className='SearchCodebase'
       />
-      <Graph
-        className='ProfileGraph'
-        visOptions={visOptions}
-        nodes={nodes}
-        edges={edges}
-        events={events}
-        popups={popups}
-        options={options}
-        getNetwork={getNetwork}
-      />
+      {nodes.length && edges.length && (
+        <Graph
+          className='ProfileGraph'
+          visOptions={visOptions}
+          nodes={nodes}
+          edges={edges}
+          events={events}
+          popups={popups}
+          options={options}
+          getNetwork={getNetwork}
+        />
+      )}
     </div>
   );
 }
