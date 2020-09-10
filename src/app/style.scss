@@ -65,12 +65,15 @@ body {
     &:hover {
       color: gray;
     }
+
+    &:not(:last-child) {
+      margin-bottom: .3em;
+    }
   }
   
 	background-color: transparent;
 	animation-name: slide-animation;
 	animation-duration: .3s;
-	margin-left: 40px;
 	font-size: 1em;
 }
 
@@ -81,6 +84,5 @@ body {
 	}
 	to {
 		opacity: 1;
-		margin-left: 40px;
 	}
 }

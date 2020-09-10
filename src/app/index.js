@@ -132,7 +132,7 @@ function App() {
       const hide = allHideRef.current.includes(e.node)
 
       return (
-        <div className='hover-popup'>
+        <div className='hover-popup' style={{marginLeft: `${node.shape.width / 2 + 20}px`}}>
           <FontAwesomeIcon
             icon={faSave}
             title='Save'
